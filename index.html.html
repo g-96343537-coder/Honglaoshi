@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSSR 数学 100 题挑战 (修复版)</title>
+    <style>
+        /* CSS 样式 - 确保选项按钮清晰可见 */
+        body {
+            font-family: 'SimSun', 'Arial', sans-serif;
+            text-align: center;
+            background-color: #f4f7f6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 25px;
+        }
+        #quiz-box {
+            min-height: 350px;
+            text-align: left;
+            border-top: 2px solid #e0e0e0;
+            padding-top: 20px;
+        }
+        .question-text {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        /* 选项按钮的样式 */
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            border: 2px solid #c8dafc;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        /* 选中、正确、错误的反馈样式保持不变 */
+        .option-btn:hover:not(.correct):not(.incorrect) {
+            background-color: #d2e3fc;
+        }
+        .option-btn.selected {
+            border-color: #fbbc04;
+            background-color: #fffde7;
+        }
+        .option-btn.correct {
+            background-color: #e6ffed !important;
+            border-color: #34a853 !important;
+            font-weight: bold;
+        }
+        .option-btn.incorrect {
+            background-color: #fce8e6 !important;
+            border-color: #ea4335 !important;
+            text-decoration: line-through;
+        }
+        
+        .action-area {
+            margin-top: 20px;
+            text-align: right;
+        }
+        #next-btn {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #34a853;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #next-btn:hover {
+            background-color: #2c8c46;
+        }
+        #result-screen {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border: 3px dashed #1a73e8;
+            border-radius: 10px;
+        }
+        #final-score {
+            font-size: 32px;
+            color: #ea4335;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .review-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            border-left: 5px solid #1a73e8;
+            text-align: left;
+        }
+        .review-question {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .review-correct {
+            color: #34a853;
+        }
+        .review-your-answer {
+            color: #ea4335;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>KSSR 数学 100 题挑战</h1>
+    <p>第 <span id="current-q-num">1</span> 题 / 共 100 题</p>
+
+    <div id="quiz-box">
+        </div>
+
+    <div class="action-area">
+        <button id="next-btn" disabled>下一题</button>
+    </div>
+
+    <div id="result-screen">
+        <h2>🎉 测验结果 🎉</h2>
+        <p>您已完成所有题目。</p>
+        <p>最终分数：</p>
+        <div id="final-score">0 / 100</div>
+        <h3>答案回顾：</h3>
+        <div id="answers-review">
+            </div>
+    </div>
+</div>
+
+<script>
+    // 题目数据：为了确保加载，将数据放在 <script> 标签的开头
+    const questions = [
+        // **数与运算 (Nombor dan Operasi) - 1-25 题**
+        { q: "1. 数字 '5' 在 752 中的数位是什么？", opts: ["个位", "十位", "百位", "千位"], ans: 1 },
+        { q: "2. 将 347 舍入到最接近的十位。", opts: ["340", "350", "300", "400"], ans: 1 },
+        { q: "3. 45 + 28 = ?", opts: ["63", "73", "75", "83"], ans: 1 },
+        { q: "4. 9 乘以 7 是多少？", opts: ["56", "63", "72", "70"], ans: 1 },
+        { q: "5. 将 '4021' 用文字写出来。", opts: ["四千零二十一", "四百零二十一", "四千零二一", "四千二十一"], ans: 0 },
+        { q: "6. 567 减去 100。", opts: ["467", "577", "667", "400"], ans: 0 },
+        { q: "7. 哪个分数与 1/2 相等？", opts: ["2/3", "3/4", "5/10", "1/4"], ans: 2 },
+        { q: "8. 将 0.7 转换为百分比。", opts: ["7%", "70%", "0.7%", "700%"], ans: 1 },
+        { q: "9. 找出 20 的 1/4 是多少。", opts: ["4", "5", "10", "8"], ans: 1 },
+        { q: "10. 以下哪一个是质数？", opts: ["9", "15", "21", "29"], ans: 3 },
+        { q: "11. 183 456 中数字 '8' 的值位是多少？", opts: ["800", "8000", "80 000", "8 000 000"], ans: 2 },
+        { q: "12. 60 ÷ 5 = ?", opts: ["10", "12", "15", "6"], ans: 1 },
+        { q: "13. 按小到大排列这些数字：54, 45, 50, 49。", opts: ["54, 50, 49, 45", "45, 49, 50, 54", "49, 45, 54, 50", "45, 50, 49, 54"], ans: 1 },
+        { q: "14. 1000 乘以 15 的积是多少？", opts: ["1500", "15 000", "150 000", "15"], ans: 1 },
+        { q: "15. 在 1 到 10 之间，有多少个奇数？", opts: ["4", "5", "6", "10"], ans: 1 },
+        { q: "16. 2.5 + 1.3 = ?", opts: ["3.5", "3.8", "4.0", "3.7"], ans: 1 },
+        { q: "17. 50 的 20% 是多少？", opts: ["5", "10", "20", "25"], ans: 1 },
+        { q: "18. 计算: 12 - 5 + 3。", opts: ["10", "4", "7", "14"], ans: 0 },
+        { q: "19. 将 3/5 表示为小数。", opts: ["0.3", "0.5", "0.6", "0.35"], ans: 2 },
+        { q: "20. 计算 1/2 + 1/4。", opts: ["2/4", "3/4", "1/8", "1/2"], ans: 1 },
+        { q: "21. (10 + 5) x 2 = ?", opts: ["17", "20", "30", "25"], ans: 2 },
+        { q: "22. 250000 + 150000 = ?", opts: ["300 000", "400 000", "350 000", "450 000"], ans: 1 },
+        { q: "23. 哪个数字是偶数？", opts: ["37", "45", "58", "61"], ans: 2 },
+        { q: "24. 将 4/100 转换为小数。", opts: ["0.4", "4.0", "0.04", "0.40"], ans: 2 },
+        { q: "25. 78298 舍入到最接近的千位。", opts: ["78 000", "79 000", "80 000", "70 000"], ans: 1 },
+        
+        // **测量与几何 (Sukatan dan Geometri) - 26-50 题**
+        { q: "26. 测量长度的标准单位是 ____。", opts: ["公斤 (kg)", "升 (L)", "米 (m)", "小时 (j)"], ans: 2 },
+        { q: "27. 一个三角形有多少条边？", opts: ["3", "4", "5", "6"], ans: 0 },
+        { q: "28. 将 2 小时转换为分钟。", opts: ["60 分钟", "100 分钟", "120 分钟", "200 分钟"], ans: 2 },
+        { q: "29. 一颗苹果的重量通常以哪个单位测量？", opts: ["公里 (km)", "克 (g)", "升 (L)", "米 (m)"], ans: 1 },
+        { q: "30. 具有 6 个正方形平面的 3D 形状是什么？", opts: ["长方体", "锥体", "正方体", "圆柱体"], ans: 2 },
+        { q: "31. 一个边长为 5 cm 的正方形面积是 ____。", opts: ["10 cm²", "20 cm²", "25 cm²", "30 cm²"], ans: 2 },
+        { q: "32. 如果现在是上午 10:30，1 小时后是 ____。", opts: ["上午 11:30", "上午 9:30", "上午 10:31", "上午 11:00"], ans: 0 },
+        { q: "33. 一个长 8 cm，宽 2 cm 的长方形周长是 ____。", opts: ["10 cm", "16 cm", "20 cm", "18 cm"], ans: 1 },
+        { q: "34. 直角是多少度？", opts: ["45°", "90°", "180°", "360°"], ans: 1 },
+        { q: "35. 将 1.5 kg 转换为克。", opts: ["150 g", "1050 g", "1500 g", "15 000 g"], ans: 2 },
+        { q: "36. 液体体积的单位是 ____。", opts: ["米 (m)", "升 (L)", "公斤 (kg)", "秒 (s)"], ans: 1 },
+        { q: "37. 六边形有多少条边？", opts: ["4", "5", "6", "8"], ans: 2 },
+        { q: "38. 将 3/4 年转换为月。", opts: ["3 个月", "4 个月", "9 个月", "12 个月"], ans: 2 },
+        { q: "39. 三角棱柱的主要特征是什么？", opts: ["6 个正方形平面", "2 个圆形底面", "2 个三角形底面", "1 个四方形底面"], ans: 2 },
+        { q: "40. 将 3 km 转换为米。", opts: ["30 m", "300 m", "3000 m", "30 000 m"], ans: 2 },
+        { q: "41. 中午是什么时间？", opts: ["午夜 12 点", "中午 12 点", "下午 6 点", "早上 6 点"], ans: 1 },
+        { q: "42. 一个四边形的内角总和是多少？", opts: ["180°", "360°", "90°", "270°"], ans: 1 },
+        { q: "43. 一根 50 cm 长的绳子被平均分成 5 段。每段有多长？", opts: ["5 cm", "10 cm", "20 cm", "25 cm"], ans: 1 },
+        { q: "44. 最小的时间单位是什么？", opts: ["分钟", "小时", "秒", "天"], ans: 2 },
+        { q: "45. 一个正方体有多少个顶点（角）？", opts: ["6", "8", "12", "4"], ans: 1 },
+        { q: "46. 90 分钟 = ____ 小时 ____ 分钟。", opts: ["1 小时 30 分钟", "1 小时 90 分钟", "2 小时 30 分钟", "1 小时 60 分钟"], ans: 0 },
+        { q: "47. 一个圆有多少条边？", opts: ["0", "1", "2", "无数"], ans: 0 },
+        { q: "48. 体积的单位通常带有哪个符号？", opts: ["² (平方)", "³ (立方)", "º (度)", "$ (钱)"], ans: 1 },
+        { q: "49. 测量房间温度使用哪个单位？", opts: ["米", "公斤", "摄氏度", "升"], ans: 2 },
+        { q: "50. 4 x (50 cm) = ____ 米。", opts: ["200 米", "20 米", "2 米", "0.2 米"], ans: 2 },
+        
+        // **钱币 (Wang) - 51-60 题**
+        { q: "51. 将 RM 5.50 转换为仙。", opts: ["55 仙", "505 仙", "550 仙", "5500 仙"], ans: 2 },
+        { q: "52. 2 张 RM10 + 3 个 50 仙 = ?", opts: ["RM 21.50", "RM 23.50", "RM 20.50", "RM 20.15"], ans: 2 },
+        { q: "53. 一本书 RM 8。5 本书的价格是多少？", opts: ["RM 35", "RM 40", "RM 45", "RM 50"], ans: 1 },
+        { q: "54. Ahmad 有 RM 50。他买了一个价值 RM 35 的玩具。他剩下多少钱？", opts: ["RM 15", "RM 25", "RM 5", "RM 20"], ans: 0 },
+        { q: "55. RM 100 的 1/2 是多少？", opts: ["RM 20", "RM 50", "RM 40", "RM 10"], ans: 1 },
+        { q: "56. 2 个 RM50 + 1 个 RM100 的总和是多少？", opts: ["RM 150", "RM 200", "RM 100", "RM 250"], ans: 1 },
+        { q: "57. 妈妈以 RM 88.90 的价格购买了一件衣服。她付了 RM 100，应找回多少钱？", opts: ["RM 11.10", "RM 12.10", "RM 1.10", "RM 10.10"], ans: 0 },
+        { q: "58. 35 仙 + 65 仙 = ____ 零吉。", opts: ["RM 0.50", "RM 1.00", "RM 10.00", "RM 0.90"], ans: 1 },
+        { q: "59. 将 RM 300 平均分配给 6 个孩子，每人得到多少？", opts: ["RM 5", "RM 30", "RM 50", "RM 60"], ans: 2 },
+        { q: "60. 哪个选项的面值最小？", opts: ["RM 50", "RM 1", "50 仙", "10 仙"], ans: 3 },
+
+        // **关系与代数 (Perkaitan dan Algebra) - 61-75 题**
+        { q: "61. 完成数列：2, 4, 6, 8, ____。", opts: ["9", "10", "11", "12"], ans: 1 },
+        { q: "62. 如果 $\\triangle + 5 = 12$，那么 $\\triangle$ 的值是多少？", opts: ["5", "7", "17", "6"], ans: 1 },
+        { q: "63. 以下哪个是倍数的数列？", opts: ["1, 3, 5, 7", "10, 20, 30, 40", "1, 2, 3, 4", "5, 5, 5, 5"], ans: 1 },
+        { q: "64. 如果 $x$ 代表我的年龄，我哥哥比我大 2 岁，他的年龄是：", opts: ["$x-2$", "$x+2$", "$2x$", "$x/2$"], ans: 1 },
+        { q: "65. 完成数列：100, 90, 80, ____, 60。", opts: ["75", "70", "85", "65"], ans: 1 },
+        { q: "66. $\\Box \\times 3 = 18$，$\\Box$ 的值是多少？", opts: ["4", "6", "8", "9"], ans: 1 },
+        { q: "67. 找出以下数列的规律：1, 4, 7, 10, ____。", opts: ["11", "12", "13", "14"], ans: 2 },
+        { q: "68. 如果 1 支笔 RM 2，5 支笔的价格可以用哪个算式表示？", opts: ["$5+2$", "$5-2$", "$5 \\times 2$", "$5 \\div 2$"], ans: 2 },
+        { q: "69. 当 $y = 4$ 时， $y + 10$ 的值是多少？", opts: ["6", "14", "40", "2.5"], ans: 1 },
+        { q: "70. 找出数列中缺失的数字：15, 20, ___, 30。", opts: ["21", "25", "28", "26"], ans: 1 },
+        { q: "71. 以下哪个表达示代表“某个数字的三倍减去四”？", opts: ["$3-x+4$", "$x-3-4$", "$3x-4$", "$4-3x$"], ans: 2 },
+        { q: "72. 如果 $A \\div 5 = 7$，那么 $A$ 是多少？", opts: ["12", "35", "2", "15"], ans: 1 },
+        { q: "73. 找出数列的下一个数字：1, 1, 2, 3, 5, 8, ____。", opts: ["10", "11", "13", "15"], ans: 2 },
+        { q: "74. $2x + 1 = 7$， $x$ 的值是多少？", opts: ["2", "3", "4", "6"], ans: 1 },
+        { q: "75. 下一个分数是什么？ 1/8, 2/8, 3/8, ____。", opts: ["4/16", "4/8", "1/2", "5/8"], ans: 1 },
+
+        // **统计与概率 (Statistik dan Kebarangkalian) - 76-100 题**
+        { q: "76. 在一个袋子里有 5 颗红球和 5 颗蓝球。随机抽出一颗红球的可能性是：", opts: ["不可能", "肯定", "可能性小", "可能性均等"], ans: 3 },
+        { q: "77. 投掷硬币，出现头像的可能性是：", opts: ["0", "1/2", "1/4", "1"], ans: 1 },
+        { q: "78. 找出这组数字的众数：3, 5, 5, 7, 8。", opts: ["3", "5", "7", "8"], ans: 1 },
+        { q: "79. 找出这组数字的中位数：1, 3, 4, 6, 9。", opts: ["3", "4", "6", "9"], ans: 1 },
+        { q: "80. 找出这组数字的平均数：2, 4, 6。", opts: ["3", "4", "5", "6"], ans: 1 },
+        { q: "81. 哪种图表最适合显示不同类别（如水果种类）的数量？", opts: ["线形图", "条形图", "饼图", "直方图"], ans: 1 },
+        { q: "82. 太阳明天会升起。这属于哪种概率？", opts: ["不可能", "可能性小", "可能性大", "肯定"], ans: 3 },
+        { q: "83. 在一个有 20 个学生的小组中，12 个是男孩，8 个是女孩。随机选出一个女孩的可能性是：", opts: ["2/5", "3/5", "1/2", "1/4"], ans: 0 },
+        { q: "84. 找出这组数据的极差：10, 15, 5, 20。", opts: ["5", "10", "15", "20"], ans: 2 },
+        { q: "85. 一天有 25 小时。这属于哪种概率？", opts: ["肯定", "可能性大", "可能性小", "不可能"], ans: 3 },
+        { q: "86. 饼图通常用来显示数据的 ____。", opts: ["变化趋势", "频率", "总体的比例", "平均值"], ans: 2 },
+        { q: "87. 如果掷骰子，掷出数字 7 的可能性是：", opts: ["1/6", "1/7", "0", "1"], ans: 2 },
+        { q: "88. 找出这组数字的中位数：10, 15, 20, 25 (偶数个)。", opts: ["15", "20", "17.5", "35"], ans: 2 },
+        { q: "89. 哪个是代表 $P(A) = 1$ 的事件？", opts: ["不可能事件", "可能事件", "确定事件", "随机事件"], ans: 2 },
+        { q: "90. 一个班级中最受欢迎的水果是：", opts: ["极差", "平均数", "众数", "中位数"], ans: 2 },
+        { q: "91. 从 1 到 10 的数字中，随机抽取一个，抽到偶数的可能性是：", opts: ["1/2", "1/5", "1/10", "1/4"], ans: 0 },
+        { q: "92. 哪个图表最适合显示一年中气温的变化？", opts: ["条形图", "饼图", "线形图", "象形图"], ans: 2 },
+        { q: "93. 找出平均数：10, 10, 20。", opts: ["10", "15", "20", "40"], ans: 1 },
+        { q: "94. 掷一个标准的六面骰子，掷出小于 3 的数字的可能性是：", opts: ["1/6", "2/6", "3/6", "1/3"], ans: 1 },
+        { q: "95. 下面哪个值代表最低概率？", opts: ["0.7", "0.01", "1", "0.5"], ans: 1 },
+        { q: "96. 一份调查显示，学生最喜欢的颜色是蓝色。蓝色是这组数据的 ____。", opts: ["中位数", "平均数", "众数", "极差"], ans: 2 },
+        { q: "97. 在一个装有 10 个红球和 1 个绿球的袋子里，取出绿球的可能性是：", opts: ["可能性均等", "可能性大", "可能性小", "肯定"], ans: 2 },
+        { q: "98. 要计算一年的降雨量，最适合用哪种图表？", opts: ["饼图", "柱状图", "线形图", "散点图"], ans: 1 },
+        { q: "99. 找出极差：2.5, 3.0, 1.5, 4.0。", opts: ["1.5", "2.5", "4.0", "3.0"], ans: 2 },
+        { q: "100. 从一副标准扑克牌中，随机抽到一张梅花的可能性是：", opts: ["1/4", "1/2", "1/13", "1/52"], ans: 0 }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+    let selectedOptionIndex = -1;
+
+    const quizBox = document.getElementById('quiz-box');
+    const nextBtn = document.getElementById('next-btn');
+    const currentQNumSpan = document.getElementById('current-q-num');
+    const resultScreen = document.getElementById('result-screen');
+    const finalScoreSpan = document.getElementById('final-score');
+    const answersReviewDiv = document.getElementById('answers-review');
+
+    // 渲染当前题目
+    function renderQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            showResults();
+            return;
+        }
+
+        const q = questions[currentQuestionIndex];
+        currentQNumSpan.textContent = currentQuestionIndex + 1;
+        quizBox.innerHTML = '';
+        nextBtn.disabled = true;
+        selectedOptionIndex = -1;
+        
+        // 选项字母数组
+        const optionLabels = ['A', 'B', 'C', 'D'];
+
+        const qText = document.createElement('p');
+        qText.className = 'question-text';
+        qText.innerHTML = q.q;
+        quizBox.appendChild(qText);
+
+        // *** 核心修复：确保选项按钮能被成功创建 ***
+        if (q.opts && q.opts.length === 4) {
+            q.opts.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                
+                // 将选项字母直接加入按钮文本中
+                btn.innerHTML = `<span style="font-weight: bold; margin-right: 10px;">${optionLabels[index]}.</span> ${option}`;
+                
+                btn.onclick = () => selectAnswer(index, btn);
+                quizBox.appendChild(btn);
+            });
+        } else {
+             // 调试信息：如果选项加载失败，显示提示
+            const errorP = document.createElement('p');
+            errorP.style.color = 'red';
+            errorP.textContent = '错误：题目选项数据缺失或格式错误，无法显示选项。';
+            quizBox.appendChild(errorP);
+        }
+    }
+
+    // 选择答案
+    function selectAnswer(index, button) {
+        // 重置所有按钮的选中状态
+        quizBox.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        
+        // 设置当前按钮为选中状态
+        button.classList.add('selected');
+        selectedOptionIndex = index;
+        nextBtn.disabled = false;
+    }
+
+    // 处理下一题
+    nextBtn.onclick = function() {
+        if (selectedOptionIndex !== -1) {
+            // 记录答案并检查
+            const q = questions[currentQuestionIndex];
+            const isCorrect = selectedOptionIndex === q.ans;
+            
+            userAnswers.push({
+                qNum: q.q.split('.')[0],
+                question: q.q,
+                selected: selectedOptionIndex,
+                correct: q.ans,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) {
+                score++;
+            }
+
+            // 禁用选项并显示反馈
+            quizBox.querySelectorAll('.option-btn').forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === selectedOptionIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                } else if (index === q.ans) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            // 延迟 500ms 后进入下一题，增强用户体验
+            setTimeout(() => {
+                currentQuestionIndex++;
+                renderQuestion();
+            }, 500);
+
+        }
+    };
+
+    // 显示结果屏幕和答案回顾
+    function showResults() {
+        quizBox.style.display = 'none';
+        nextBtn.style.display = 'none';
+        document.querySelector('.action-area').style.display = 'none';
+        
+        // 选项字母数组
+        const optionLabels = ['A', 'B', 'C', 'D'];
+
+        // 显示分数
+        finalScoreSpan.innerHTML = `${score} / ${questions.length}`;
+        resultScreen.style.display = 'block';
+
+        // 生成答案回顾
+        answersReviewDiv.innerHTML = '';
+        userAnswers.forEach(ua => {
+            const reviewBox = document.createElement('div');
+            reviewBox.className = 'review-box';
+            
+            const qP = document.createElement('p');
+            qP.className = 'review-question';
+            qP.innerHTML = `(${ua.isCorrect ? '✅' : '❌'}) ${ua.qNum}. ${ua.question}`;
+            reviewBox.appendChild(qP);
+
+            // 查找正确答案的文本
+            const qData = questions.find(q => q.q.startsWith(ua.qNum));
+            // 防止 opts 不存在导致错误
+            if (qData && qData.opts) {
+                const correctText = qData.opts[ua.correct];
+                const selectedText = qData.opts[ua.selected];
+    
+                // 正确答案
+                const correctP = document.createElement('p');
+                correctP.className = 'review-correct';
+                correctP.textContent = `正确答案: ${optionLabels[ua.correct]}. ${correctText}`;
+                reviewBox.appendChild(correctP);
+    
+                // 您的答案
+                if (!ua.isCorrect) {
+                    const userP = document.createElement('p');
+                    userP.className = 'review-your-answer';
+                    userP.textContent = `您的答案: ${optionLabels[ua.selected]}. ${selectedText}`;
+                    reviewBox.appendChild(userP);
+                }
+            }
+            
+            answersReviewDiv.appendChild(reviewBox);
+        });
+    }
+
+    // 启动游戏
+    window.onload = renderQuestion;
+</script>
+
+</body>
+</html>
